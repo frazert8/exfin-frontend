@@ -66,7 +66,8 @@ const App = () => {
     for (let i = 0; i < mockData.length; i++) {
       await addDoc(collection(db, "financials"), { ...mockData[i], id: i });
     }
-    fetchFinancials();
+    alert("Database seeded! Refreshing...");
+    window.location.reload();
   };
 
   const generateFallbackData = () => {
@@ -78,7 +79,7 @@ const App = () => {
       const opex = Math.floor(15000 * 1.05); 
       const netIncome = revenue - cogs - opex;
       currentCash += netIncome; 
-      return { month, revenue, forecast: revenue * 1.05, cogs, opex, netIncome, cashOnHand: currentCash, headcount: 5 + Math.floor(index / 4) };
+      return { month, revenue, forecast: revenue * 1.05, cogs, opex, netIncome, cashOnHand: currentCash, headcount: 5 + Math.floor(index / 4), id: index };
     });
   };
 
@@ -129,13 +130,11 @@ const App = () => {
        <h1 className="text-2xl font-bold text-slate-900 flex items-center"><Lock className="mr-3 text-indigo-600" size={24} /> Consultant Control Center</h1>
        <Card className="p-6">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Database Tools</h3>
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h4 className="font-bold text-slate-700 mb-2">Firebase Status: {isConnected ? <span className="text-emerald-600">Active</span> : <span className="text-orange-500">Not Synced</span>}</h4>
-                <button onClick={seedDatabase} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center">
-                    <Database size={16} className="mr-2"/> Seed Database
-                </button>
-            </div>
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <h4 className="font-bold text-slate-700 mb-2">Firebase Status: {isConnected ? <span className="text-emerald-600">Active</span> : <span className="text-orange-500">Not Synced</span>}</h4>
+              <button onClick={seedDatabase} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center">
+                  <Database size={16} className="mr-2"/> Seed Database
+              </button>
           </div>
        </Card>
     </div>
@@ -170,5 +169,4 @@ const App = () => {
     </div>
   );
 };
-
 export default App;
