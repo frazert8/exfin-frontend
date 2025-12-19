@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
+    "@tailwindcss/forms": "^0.5.11",
     "firebase": "^12.6.0",
     "lucide-react": "^0.561.0",
     "react": "^19.2.0",
