@@ -1,196 +1,125 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { 
   LayoutDashboard, TrendingUp, Users, DollarSign, Activity, Briefcase, Lock, 
-  BrainCircuit, CheckCircle, Menu, X, BarChart2, Check, ExternalLink, Database
+  BrainCircuit, CheckCircle, Menu, X, BarChart2, Check, ExternalLink, Database, ArrowUpRight
 } from 'lucide-react';
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell 
 } from 'recharts';
 
-// --- FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-  apiKey: "AIzaSy...", 
-  authDomain: "exfin-ai.firebaseapp.com",
-  projectId: "exfin-ai",
-  storageBucket: "exfin-ai.firebasestorage.app",
-  messagingSenderId: "...",
-  appId: "..."
+// --- SUPABASE CONFIGURATION ---
+// REPLACE THESE WITH YOUR KEYS FROM SUPABASE DASHBOARD
+const supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL';
+const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// --- MOCK DATA ---
+const generateMockData = () => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let cash = 45000;
+  return months.map((month, i) => {
+    const rev = Math.floor(45000 + (i * 2500) + (Math.random() * 2000));
+    const exp = Math.floor(rev * 0.65);
+    cash += (rev - exp);
+    return {
+      month, revenue: rev, cogs: Math.floor(rev * 0.4), opex: Math.floor(rev * 0.25), netIncome: rev - exp, cashOnHand: cash, headcount: 5 + Math.floor(i/4)
+    };
+  });
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 const Card = ({ children, className="" }) => (
-  <div className={`bg-card-bg rounded-xl shadow-lg border border-border transition-all hover:shadow-xl ${className}`}>
-    {children}
-  </div>
+  <div className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200/60 p-6 ${className}`}>{children}</div>
 );
 
-// eslint-disable-next-line no-unused-vars
-const KPICard = ({ title, value, trend, trendType, icon: Icon }) => (
-  <Card className="p-6 flex items-start justify-between">
-    <div>
-      <p className="text-text-light text-xs font-bold uppercase tracking-wide mb-1">{title}</p>
-      <h3 className="text-3xl font-bold text-text">{value}</h3>
-      <div className={`flex items-center mt-2 text-sm font-medium ${trendType === 'positive' ? 'text-success' : 'text-danger'}`}>
-        {trendType === 'positive' ? <TrendingUp size={16} className="mr-1" /> : <Activity size={16} className="mr-1" />}
-        <span>{trend}</span>
-      </div>
-    </div>
-    <div className="p-3 bg-primary-light/10 rounded-lg text-primary">
-      <Icon size={24} />
-    </div>
-  </Card>
-);
-
-const ClientDashboard = ({ financialData, isConnected }) => {
-  const latest = financialData[financialData.length - 1] || {};
-  const totalRevenue = financialData.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
+const KPICard = ({ title, value, trend, icon: Icon, color="indigo" }) => {
+  const colorClasses = { indigo: "bg-indigo-50 text-indigo-600", emerald: "bg-emerald-50 text-emerald-600", blue: "bg-blue-50 text-blue-600", amber: "bg-amber-50 text-amber-600" };
   return (
-    <div className="space-y-8 animate-in fade-in duration-1000">
-       <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-text">Executive Dashboard</h1>
-            <p className="text-text-light">Your Financial Health Overview</p>
-          </div>
-          {isConnected ? (
-              <span className="bg-success/10 text-success px-3 py-1 rounded-full text-xs font-bold border border-success/20 flex items-center"><CheckCircle size={14} className="mr-1.5"/> Firebase Connected</span>
-          ) : (
-              <span className="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-xs font-bold border border-secondary/20 flex items-center"><Database size={14} className="mr-1.5"/> Local Mode</span>
-          )}
-       </div>
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard title="Revenue YTD" value={`$${(totalRevenue/1000).toFixed(1)}k`} trend="+12.4%" trendType="positive" icon={DollarSign} />
-          <KPICard title="Net Margin" value="30.2%" trend="+1.5%" trendType="positive" icon={TrendingUp} />
-          <KPICard title="Cash on Hand" value={`$${(latest.cashOnHand/1000).toFixed(1)}k`} trend="4.5 Mo Runway" trendType="positive" icon={Briefcase} />
-          <KPICard title="Headcount" value={latest.headcount} trend="+2 this qtr" trendType="neutral" icon={Users} />
-       </div>
-       <Card className="p-6">
-         <h3 className="font-bold text-text mb-4">Revenue Trend</h3>
-         <div className="h-80">
-           <ResponsiveContainer width="100%" height="100%">
-             <AreaChart data={financialData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--text-light)', fontSize: 12}} />
-               <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--text-light)', fontSize: 12}} tickFormatter={(val) => `$${val/1000}k`} />
-               <Tooltip 
-                 contentStyle={{ 
-                   backgroundColor: 'var(--card-bg)', 
-                   borderColor: 'var(--border)',
-                   borderRadius: '0.75rem',
-                   boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                 }} 
-               />
-               <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-             </AreaChart>
-           </ResponsiveContainer>
-         </div>
-       </Card>
-    </div>
+    <Card className="hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex justify-between items-start mb-4">
+        <div className={`p-3 rounded-xl ${colorClasses[color]}`}><Icon size={22} /></div>
+        <span className="flex items-center text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full border border-emerald-100"><ArrowUpRight size={12} className="mr-1" /> {trend}</span>
+      </div>
+      <div><p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p><h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</h3></div>
+    </Card>
   );
 };
 
-const AdminPanel = ({ isConnected, seedDatabase }) => (
-  <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-     <h1 className="text-3xl font-bold text-text flex items-center"><Lock className="mr-3 text-primary" size={28} /> Consultant Control Center</h1>
-     <Card className="p-6">
-        <h3 className="text-sm font-bold text-text-light uppercase tracking-wider mb-4">Database Tools</h3>
-        <div className="p-4 bg-background rounded-lg border border-border">
-            <h4 className="font-bold text-text mb-2">Firebase Status: {isConnected ? <span className="text-success">Active</span> : <span className="text-danger">Not Synced</span>}</h4>
-            <p className="text-sm text-text-light mb-4">Seed the database with mock financial data. This will overwrite any existing data.</p>
-            <button onClick={seedDatabase} className="px-4 py-2 bg-primary hover:bg-primary-light text-white rounded-lg font-medium text-sm transition-colors flex items-center shadow-md hover:shadow-lg">
-                <Database size={16} className="mr-2"/> Seed Database
-            </button>
-        </div>
-     </Card>
-  </div>
-);
-
 const App = () => {
-  const [activeView, setActiveView] = useState('client_dashboard'); 
-  const [isConnected, setIsConnected] = useState(false);
-  const [financialData, setFinancialData] = useState([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const generateFallbackData = useCallback(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    let currentCash = 45000;
-    return months.map((month, index) => {
-      const revenue = Math.floor(45000 + (index * 2500) + (Math.random() * 2000));
-      const cogs = Math.floor(revenue * 0.42);
-      const opex = Math.floor(15000 * 1.05); 
-      const netIncome = revenue - cogs - opex;
-      currentCash += netIncome; 
-      return { month, revenue, forecast: revenue * 1.05, cogs, opex, netIncome, cashOnHand: currentCash, headcount: 5 + Math.floor(index / 4), id: index };
-    });
-  }, []);
+  const [view, setView] = useState('dashboard'); 
+  const [data, setData] = useState([]);
+  const [source, setSource] = useState('loading'); 
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    const fetchFinancials = async () => {
+    const fetchData = async () => {
       try {
-        const q = query(collection(db, "financials"), orderBy("id", "asc"));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setFinancialData(querySnapshot.docs.map(doc => doc.data()));
-          setIsConnected(true);
-        } else {
-          setFinancialData(generateFallbackData());
-        }
-      } catch (e) {
-        console.error("Firebase connection error:", e);
-        setFinancialData(generateFallbackData());
-      }
+        const { data: sbData, error } = await supabase.from('financials').select('*').order('id', { ascending: true });
+        if (!error && sbData.length > 0) { setData(sbData); setSource('supabase'); }
+        else { throw new Error("Empty"); }
+      } catch (err) { setData(generateMockData()); setSource('local'); }
     };
-    
-    fetchFinancials(); 
-  }, [generateFallbackData]);
+    fetchData();
+  }, []);
 
   const seedDatabase = async () => {
-    try {
-      const mockData = generateFallbackData();
-      for (let i = 0; i < mockData.length; i++) {
-        await addDoc(collection(db, "financials"), { ...mockData[i], id: i });
-      }
-      alert("Database seeded successfully! The page will now refresh.");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error seeding database:", error);
-      alert("There was an error seeding the database. Check the console for details.");
-    }
+    if (source === 'supabase') return alert("Database already has data!");
+    const mock = generateMockData();
+    const { error } = await supabase.from('financials').insert(mock);
+    if (error) alert("Error: " + error.message);
+    else window.location.reload();
   };
 
+  const totalRev = data.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
+  const latest = data[data.length - 1] || {};
+  const margin = latest.revenue ? ((latest.netIncome / latest.revenue) * 100).toFixed(1) : 0;
+
   return (
-    <div className="min-h-screen bg-background font-sans text-text flex">
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-gray-300 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
-        <div className="p-6 border-b border-gray-800 flex justify-between items-center h-[73px]">
-          <span className="text-xl font-bold tracking-tight text-white flex items-center"><Activity className="mr-2 text-primary"/> ExFin Ai</span>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white"><X size={24} /></button>
-        </div>
-        <nav className="p-4 space-y-2">
-          <button onClick={() => setActiveView('client_dashboard')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all text-sm font-semibold ${activeView === 'client_dashboard' ? 'bg-primary text-white' : 'hover:bg-gray-800'}`}>
-            <LayoutDashboard size={20} /><span>Dashboard</span>
-          </button>
-          <button onClick={() => setActiveView('admin')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all text-sm font-semibold ${activeView === 'admin' ? 'bg-primary text-white' : 'hover:bg-gray-800'}`}>
-            <Lock size={20} /><span>Admin Portal</span>
-          </button>
+    <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
+      <aside className={`fixed inset-y-0 left-0 z-20 w-72 bg-slate-900 text-slate-300 transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 shadow-2xl`}>
+        <div className="p-8 flex items-center justify-between"><div className="flex items-center gap-3"><Activity className="text-white" size={20} /><span className="text-xl font-bold text-white">ExFin Ai</span></div><button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400"><X size={24} /></button></div>
+        <nav className="px-4 space-y-2 mt-4">
+          <button onClick={() => setView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${view === 'dashboard' ? 'bg-indigo-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}><LayoutDashboard size={20} /> <span>Dashboard</span></button>
+          <button onClick={() => setView('admin')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-medium ${view === 'admin' ? 'bg-indigo-600 text-white shadow-lg' : 'hover:bg-slate-800'}`}><Lock size={20} /> <span>Admin Portal</span></button>
         </nav>
       </aside>
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="bg-card-bg border-b border-border p-4 flex md:hidden justify-between items-center shadow-sm z-40">
-          <button onClick={() => setIsSidebarOpen(true)} className="text-text-light"><Menu size={24} /></button>
-          <span className="font-bold text-text">ExFin Ai</span>
-          <div className="w-6"></div> 
+      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-slate-500"><Menu size={24} /></button>
+          <div className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center border ${source === 'supabase' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+            <div className={`w-2 h-2 rounded-full mr-2 ${source === 'supabase' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
+            {source === 'supabase' ? 'Live Supabase Data' : 'Local Demo Mode'}
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-8 scroll-smooth">
-          {activeView === 'client_dashboard' ? <ClientDashboard financialData={financialData} isConnected={isConnected} /> : <AdminPanel isConnected={isConnected} seedDatabase={seedDatabase} />}
+          {view === 'dashboard' ? (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <KPICard title="Revenue YTD" value={`$${(totalRev/1000).toFixed(1)}k`} trend="12.4%" icon={DollarSign} color="indigo" />
+                <KPICard title="Net Margin" value={`${margin}%`} trend="2.1%" icon={Activity} color="emerald" />
+                <KPICard title="Cash on Hand" value={`$${(latest.cashOnHand/1000).toFixed(1)}k`} trend="Stable" icon={Briefcase} color="blue" />
+                <KPICard title="Headcount" value={latest.headcount} trend="Growing" icon={Users} color="amber" />
+              </div>
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <Card className="xl:col-span-2 min-h-[400px]">
+                  <h3 className="font-bold text-slate-800 text-lg mb-6">Revenue Trajectory</h3>
+                  <div className="h-80 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data}><defs><linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/><stop offset="95%" stopColor="#6366f1" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" /><YAxis /><Tooltip /><Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fill="url(#colorRev)" /></AreaChart></ResponsiveContainer></div>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500">
+               <Card className="p-0 overflow-hidden">
+                 <div className="p-8">
+                   <h3 className="font-bold text-slate-900 mb-4">Supabase Connection</h3>
+                   <button onClick={seedDatabase} disabled={source === 'supabase'} className={`w-full py-4 rounded-xl font-bold flex items-center justify-center transition-all shadow-lg ${source === 'supabase' ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 text-white'}`}>
+                     {source === 'supabase' ? 'Database Already Seeded' : 'Seed Database'}
+                   </button>
+                 </div>
+               </Card>
+            </div>
+          )}
         </main>
       </div>
     </div>
