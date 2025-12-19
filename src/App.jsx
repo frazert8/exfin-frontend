@@ -10,8 +10,8 @@ import {
 
 // --- SUPABASE CONFIGURATION ---
 // REPLACE THESE WITH YOUR KEYS FROM SUPABASE DASHBOARD
-const supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL';
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabaseUrl = 'https://cuaskddjuqvxwqjjgcuw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1YXNrZGRqdXF2eHdxampnY3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzIxMDgsImV4cCI6MjA4MTEwODEwOH0.LahgwcW78nXk-GFu3d9ZM1XanwYCX77Cb3LRPO0_V0s';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
