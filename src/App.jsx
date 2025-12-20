@@ -72,77 +72,160 @@ const App = () => {
     exit: { opacity: 0, y: -20 },
   };
 
+  const renderView = () => {
+    switch(view) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Financial Performance</h2>
+                <p className="text-zinc-500 text-sm">Real-time overview of key metrics.</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleFetchData} className="p-2 bg-white border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-50 transition-colors"><RefreshCw size={18} /></button>
+                <button className="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2">Last 12 Months <ChevronDown size={14} /></button>
+                <button className="px-4 py-2 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-800 shadow-lg shadow-zinc-200">Export Report</button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              <KPICard title="Total Revenue" rawValue={totalRev} format={formatCurrency} trend="up" trendValue="12.4%" icon={DollarSign} color="indigo" />
+              <KPICard title="Net Margin" rawValue={margin} format={(v) => `${v.toFixed(1)}%`} trend="up" trendValue="2.1%" icon={Activity} color="emerald" />
+              <KPICard title="Cash on Hand" rawValue={latest.cashOnHand} format={formatCurrency} trend="down" trendValue="0.4%" icon={Wallet} color="blue" />
+              <KPICard title="Total Headcount" rawValue={latest.headcount} format={(v) => String(Math.round(v))} trend="up" trendValue="+3" icon={Users} color="violet" />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <Card className="xl:col-span-2 min-h-[400px]">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="font-bold text-zinc-900 text-lg">Revenue vs Net Income</h3>
+                    <p className="text-xs text-zinc-500">Monthly breakdown for current fiscal year</p>
+                  </div>
+                  <button className="text-zinc-400 hover:text-zinc-600"><ExternalLink size={16} /></button>
+                </div>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%"><ComposedChart data={data}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} /><RechartsTooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} /><Legend iconType="circle" /><Bar dataKey="revenue" name="Revenue" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]} /><Line type="monotone" dataKey="netIncome" name="Net Income" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill:'#10b981', strokeWidth:2, stroke:'#fff'}} activeDot={{r: 6}} /></ComposedChart></ResponsiveContainer>
+                </div>
+              </Card>
+              <Card>
+                 <h3 className="font-bold text-zinc-900 text-lg mb-2">Cost Distribution</h3>
+                 <p className="text-xs text-zinc-500 mb-6">Breakdown of latest month financials</p>
+                 <div className="h-64 relative"><ResponsiveContainer width="100%" height="100%"><RePieChart><Pie data={expenseData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{expenseData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} stroke="none" />))}</Pie></RePieChart></ResponsiveContainer><div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"><p className="text-xs text-zinc-400 font-medium">Profit</p><p className="text-xl font-bold text-zinc-800">{margin.toFixed(1)}%</p></div></div>
+                 <div className="space-y-3 mt-4">{expenseData.map((item) => (<div key={item.name} className="flex justify-between items-center text-sm"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: item.color}}></div><span className="text-zinc-600">{item.name}</span></div><span className="font-bold text-zinc-900">{formatCurrency(item.value)}</span></div>))}</div>
+              </Card>
+            </div>
+          </div>
+        );
+      case 'analytics':
+        return (
+           <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Data Analytics</h2>
+                  <p className="text-zinc-500 text-sm">A deeper dive into the numbers.</p>
+                </div>
+              </div>
+              <Card>
+                <h3 className="font-bold text-zinc-900 text-lg mb-6">Monthly Expenses (COGS vs OpEx)</h3>
+                <div className="h-96 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
+                      <Legend iconType="circle"/>
+                      <Bar dataKey="cogs" name="COGS" stackId="a" fill="#6366f1" />
+                      <Bar dataKey="opex" name="OpEx" stackId="a" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+           </div>
+        );
+      case 'admin':
+        return (
+          <div className="max-w-xl mx-auto pt-10">
+              <Card className="text-center p-10">
+                  <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6"><Database size={32} /></div>
+                  <h3 className="text-2xl font-bold text-zinc-900 mb-2">Data Management</h3>
+                  <p className="text-zinc-500 mb-8">Manage your Supabase connection and seed initial demo data.</p>
+                  <button onClick={handleSeedDatabase} disabled={source === 'supabase' || loading} className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${source === 'supabase' ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'}`}>
+                      {source === 'supabase' ? <Check size={18} /> : <Database size={18} />}
+                      {source === 'supabase' ? 'Database Synced' : 'Seed Database with Mock Data'}
+                  </button>
+              </Card>
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-50 flex font-sans text-zinc-900 selection:bg-indigo-100">
+    <div className="min-h-screen bg-zinc-100 flex font-sans text-zinc-900 selection:bg-indigo-100">
       
-      <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-zinc-200 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-        {/* ... sidebar content ... */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-zinc-900 text-zinc-300 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+        <div className="h-full flex flex-col">
+          <div className="p-6 flex items-center gap-3 border-b border-zinc-800">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white"><BrainCircuit size={20} /></div>
+            <span className="text-xl font-bold tracking-tight text-white">ExFin.ai</span>
+          </div>
+
+          <div className="px-4 py-4">
+            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">Menu</p>
+            <nav className="space-y-1">
+              <button onClick={() => setView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'dashboard' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <LayoutDashboard size={18} /> <span>Dashboard</span>
+              </button>
+              <button onClick={() => setView('analytics')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'analytics' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <BarChart2 size={18} /> <span>Analytics</span>
+              </button>
+              <button onClick={() => setView('admin')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'admin' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <Lock size={18} /> <span>Admin Portal</span>
+              </button>
+            </nav>
+          </div>
+
+          <div className="mt-auto p-4">
+            <div className="bg-zinc-800 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">JD</div>
+                <div>
+                  <p className="text-sm font-bold text-white">John Doe</p>
+                  <p className="text-xs text-zinc-400">CFO Access</p>
+                </div>
+              </div>
+              <div className={`text-xs font-semibold flex items-center gap-2 ${source === 'supabase' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <div className={`w-2 h-2 rounded-full ${source === 'supabase' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                {source === 'supabase' ? 'Live Connection' : 'Demo Data'}
+              </div>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-20">
-          {/* ... header content ... */}
+        <header className="h-16 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-20">
+           <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="text-zinc-500"><Menu size={20} /></button>
+           <div className="flex items-center gap-4">
+             <div className="hidden md:flex relative">
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+               <input type="text" placeholder="Search..." className="pl-10 pr-4 py-2 bg-zinc-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64" />
+             </div>
+             <button className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors relative"><Bell size={20} /><span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span></button>
+           </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
           <AnimatePresence mode="wait">
             {loading ? (
-               <motion.div key="loader" className="space-y-6 animate-pulse">{/* ... loader ... */}</motion.div>
+               <motion.div key="loader">{/* ... loader ... */}</motion.div>
             ) : (
-              <motion.div
-                key={view}
-                variants={motionVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                {view === 'dashboard' && (
-                  <div className="space-y-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      {/* ... header title ... */}
-                    </div>
-                    
-                    {/* --- BENTO GRID START --- */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 grid-rows-3 gap-6">
-                      <Card className="lg:col-span-2 lg:row-span-2 min-h-[400px]">
-                        <div className="flex justify-between items-center mb-6">
-                          <div>
-                            <h3 className="font-bold text-zinc-900 text-lg">Revenue vs Net Income</h3>
-                            <p className="text-xs text-zinc-500">Monthly breakdown</p>
-                          </div>
-                          <button className="text-zinc-400 hover:text-zinc-600"><ExternalLink size={16} /></button>
-                        </div>
-                        <div className="h-80 w-full">
-                           <ResponsiveContainer width="100%" height="100%"><ComposedChart data={data}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} /><RechartsTooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} /><Legend iconType="circle" /><Bar dataKey="revenue" name="Revenue" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]} /><Line type="monotone" dataKey="netIncome" name="Net Income" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill:'#10b981', strokeWidth:2, stroke:'#fff'}} activeDot={{r: 6}} /></ComposedChart></ResponsiveContainer>
-                        </div>
-                      </Card>
-
-                      <KPICard title="Net Margin" rawValue={margin} format={(v) => `${v.toFixed(1)}%`} trend="up" trendValue="2.1%" icon={Activity} color="emerald" />
-                      <KPICard title="Cash on Hand" rawValue={latest.cashOnHand} format={formatCurrency} trend="down" trendValue="0.4%" icon={Wallet} color="blue" />
-                      
-                      <KPICard title="Total Revenue (YTD)" rawValue={totalRev} format={formatCurrency} trend="up" trendValue="12.4%" icon={DollarSign} color="indigo" />
-                      
-                      <Card className="lg:col-span-2">
-                         <h3 className="font-bold text-zinc-900 text-lg mb-2">Cost Distribution</h3>
-                         <p className="text-xs text-zinc-500 mb-6">Latest month breakdown</p>
-                         <div className="h-40 relative flex justify-around items-center">
-                            <div className="h-40 w-40"><ResponsiveContainer width="100%" height="100%"><RePieChart><Pie data={expenseData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">{expenseData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} stroke="none" />))}</Pie></RePieChart></ResponsiveContainer></div>
-                            <div className="space-y-3">{expenseData.map((item) => (<div key={item.name} className="flex justify-between items-center text-sm"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: item.color}}></div><span className="text-zinc-600">{item.name}</span></div><span className="font-bold text-zinc-900">{formatCurrency(item.value)}</span></div>))}</div>
-                         </div>
-                      </Card>
-
-                      <KPICard title="Total Headcount" rawValue={latest.headcount} format={(v) => String(Math.round(v))} trend="up" trendValue="+3" icon={Users} color="violet" />
-
-                    </div>
-                    {/* --- BENTO GRID END --- */}
-
-                    {/* ... a simplified data table could go here ... */}
-                  </div>
-                )}
-                
-                {/* ... other views (analytics, admin) ... */}
-
+              <motion.div key={view} variants={motionVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+                {renderView()}
               </motion.div>
             )}
           </AnimatePresence>
