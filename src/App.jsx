@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFinancialData, seedDatabase, formatCurrency } from './api';
-import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { AnimatePresence, motion } from 'framer-motion';
 
 import Card from './components/Card';
 import KPICard from './components/KPICard';
@@ -27,7 +27,7 @@ const App = () => {
   const [source, setSource] = useState('loading'); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const handleFetchData = useCallback(async () => { setLoading(true); try { const { data: fetchedData, source: fetchedSource } = await getFinancialData(); setData(fetchedData); setSource(fetchedSource); } catch (error) { console.error("Failed to fetch financial data:", error); } finally { setLoading(false); } }, []);
+  const handleFetchData = useCallback(async () => { setLoading(true); try { const { data: fetchedData } = await getFinancialData(); setData(fetchedData); } catch (error) { console.error("Failed to fetch financial data:", error); } finally { setLoading(false); } }, []);
   useEffect(() => { handleFetchData(); }, [handleFetchData]);
   
   const handleSeedDatabase = async () => { if (source === 'supabase') { alert("Database already has data!"); return; } setLoading(true); const success = await seedDatabase(); if (success) { alert("Database seeded successfully! Reloading..."); window.location.reload(); } else { setLoading(false); alert("Database seeding failed. Check console for errors."); } };

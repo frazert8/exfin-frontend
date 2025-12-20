@@ -1,6 +1,6 @@
 import React from 'react';
 
-const KPICard = ({ title, value, trend, icon, color, trendColor = 'green' }) => {
+const KPICard = ({ title, value, trend, icon, color }) => {
   const colors = {
     indigo: "bg-[#E0E7FF] text-[#4F46E5]",
     emerald: "bg-[#D1FAE5] text-[#059669]", 
@@ -8,11 +8,6 @@ const KPICard = ({ title, value, trend, icon, color, trendColor = 'green' }) => 
     amber: "bg-[#FEF3C7] text-[#D97706]"
   };
 
-  const trendColors = {
-    green: "bg-[#D1FAE5] text-[#047857]",
-    red: "bg-[#FEE2E2] text-[#B91C1C]",
-  };
-  
   const arrowIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -27,7 +22,7 @@ const KPICard = ({ title, value, trend, icon, color, trendColor = 'green' }) => 
           {icon}
         </div>
         {trend && (
-          <div className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${trendColors[trendColor]}`}>
+          <div className="flex items-center text-xs font-bold px-2 py-1 rounded-full bg-[#D1FAE5] text-[#047857]">
             {arrowIcon}
             <span className="ml-1">{trend}</span>
           </div>
