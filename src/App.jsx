@@ -132,7 +132,7 @@ const App = () => {
                          </div>
                       </Card>
 
-                      <KPICard title="Total Headcount" rawValue={latest.headcount} format={(v) => Math.round(v)} trend="up" trendValue="+3" icon={Users} color="violet" />
+                      <KPICard title="Total Headcount" rawValue={latest.headcount} format={(v) => String(Math.round(v))} trend="up" trendValue="+3" icon={Users} color="violet" />
 
                     </div>
                     {/* --- BENTO GRID END --- */}
