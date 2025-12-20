@@ -4,6 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-zinc-100;
+    background-color: theme('colors.zinc.100');
+    font-family: theme('fontFamily.sans');
   }
 }
