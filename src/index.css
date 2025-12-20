@@ -1,31 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --primary: #5a67d8;
-  --primary-light: #7f8ce2;
-  --secondary: #ff6b6b;
-  --background: #f7fafc;
-  --text: #2d3748;
-  --text-light: #718096;
-  --card-bg: #ffffff;
-  --border: #e2e8f0;
-  --success: #48bb78;
-  --danger: #f56565;
-}
-
-@layer base {
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: var(--background);
-        color: var(--text);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-    }
-}
