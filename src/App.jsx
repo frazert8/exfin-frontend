@@ -11,8 +11,8 @@ import {
 } from 'recharts';
 
 // --- SUPABASE CONFIGURATION ---
-const supabaseUrl = 'https://cuaskddjuqvxwqjjgcuw.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1YXNrZGRqdXF2eHdxampnY3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzIxMDgsImV4cCI6MjA4MTEwODEwOH0.LahgwcW78nXk-GFu3d9ZM1XanwYCX77Cb3LRPO0_V0s';
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
