@@ -16,7 +16,6 @@ import {
   Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, BarChart 
 } from 'recharts';
 
-
 const App = () => {
   const [view, setView] = useState('dashboard'); 
   const [data, setData] = useState([]);
@@ -70,11 +69,6 @@ const App = () => {
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   };
-  
-  const mainContentVariants = {
-    open: { scale: 1, borderRadius: "0px" },
-    closed: { scale: 0.9, borderRadius: "30px" },
-  };
 
   const renderView = () => {
     switch(view) {
@@ -123,7 +117,27 @@ const App = () => {
             </div>
           </div>
         );
-      // ... other cases
+      case 'analytics':
+        return (
+           <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Data Analytics</h2>
+                  <p className="text-zinc-500 text-sm">A deeper dive into the numbers.</p>
+                </div>
+              </div>
+              <Card>
+                <h3 className="font-bold text-zinc-900 text-lg mb-6">Monthly Expenses (COGS vs OpEx)</h3>
+                <div className="h-96 w-full min-h-[384px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} /><RechartsTooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} /><Legend iconType="circle"/><Bar dataKey="cogs" name="COGS" stackId="a" fill="#6366f1" /><Bar dataKey="opex" name="OpEx" stackId="a" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+           </div>
+        );
       case 'admin':
         return (
           <div className="max-w-xl mx-auto pt-10">
@@ -139,77 +153,71 @@ const App = () => {
           </div>
         );
       default:
-        return (
-          <div className="text-center p-20">
-            <h2 className="text-2xl font-bold">{view.charAt(0).toUpperCase() + view.slice(1)}</h2>
-            <p>Coming soon!</p>
-          </div>
-        );
+        return null;
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-zinc-100 flex font-sans text-zinc-900 selection:bg-indigo-100 overflow-hidden">
-      
+    <div className="min-h-screen bg-zinc-100 flex font-sans text-zinc-900 selection:bg-indigo-100">
       <motion.aside 
-        className="fixed inset-y-0 left-0 z-30 w-64 bg-zinc-900 text-zinc-300"
         initial={false}
-        animate={{ x: isSidebarOpen ? 0 : -256 }}
+        animate={{ width: isSidebarOpen ? '16rem' : '5rem' }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="bg-zinc-900 text-zinc-300 relative flex flex-col"
       >
-        <div className="h-full flex flex-col">
-          <div className="p-6 flex items-center justify-between gap-3 border-b border-zinc-800">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white"><BrainCircuit size={20} /></div>
-              <span className="text-xl font-bold tracking-tight text-white">ExFin.ai</span>
-            </div>
+        <div className="h-full flex flex-col overflow-hidden">
+          <div className="p-4 h-16 flex items-center justify-between gap-3 border-b border-zinc-800 flex-shrink-0">
+            <AnimatePresence>
+              {isSidebarOpen && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 0.1 }}>
+                  <span className="text-xl font-bold tracking-tight text-white">ExFin.ai</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 rounded-full hover:bg-zinc-800">
+              <ChevronsLeft size={20} className={`text-zinc-400 transition-transform duration-500 ${isSidebarOpen ? '' : 'rotate-180'}`} />
+            </button>
           </div>
 
-          <div className="px-4 py-4">
-            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">Menu</p>
+          <div className="px-4 py-4 overflow-y-auto">
+            <AnimatePresence>
+              {isSidebarOpen && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 0.1 }} className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">Menu</motion.p>}
+            </AnimatePresence>
             <nav className="space-y-1">
-              <button onClick={() => setView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'dashboard' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
-                <LayoutDashboard size={18} /> <span>Dashboard</span>
+              <button onClick={() => setView('dashboard')} title="Dashboard" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${isSidebarOpen ? '' : 'justify-center'} ${view === 'dashboard' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <LayoutDashboard size={18} />
+                {isSidebarOpen && <span>Dashboard</span>}
               </button>
-              <button onClick={() => setView('analytics')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'analytics' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
-                <BarChart2 size={18} /> <span>Analytics</span>
+              <button onClick={() => setView('analytics')} title="Analytics" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${isSidebarOpen ? '' : 'justify-center'} ${view === 'analytics' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <BarChart2 size={18} />
+                {isSidebarOpen && <span>Analytics</span>}
               </button>
-              <button onClick={() => setView('admin')} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${view === 'admin' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
-                <Lock size={18} /> <span>Admin Portal</span>
+              <button onClick={() => setView('admin')} title="Admin Portal" className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-medium text-sm ${isSidebarOpen ? '' : 'justify-center'} ${view === 'admin' ? 'bg-indigo-600 text-white' : 'hover:bg-zinc-800'}`}>
+                <Lock size={18} />
+                {isSidebarOpen && <span>Admin Portal</span>}
               </button>
             </nav>
           </div>
 
-          <div className="mt-auto p-4">
-            <div className="bg-zinc-800 p-4 rounded-xl">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">JD</div>
-                <div>
-                  <p className="text-sm font-bold text-white">John Doe</p>
-                  <p className="text-xs text-zinc-400">CFO Access</p>
-                </div>
-              </div>
-              <div className={`text-xs font-semibold flex items-center gap-2 ${source === 'supabase' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                <div className={`w-2 h-2 rounded-full ${source === 'supabase' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                {source === 'supabase' ? 'Live Connection' : 'Demo Data'}
+          <div className="mt-auto p-4 flex-shrink-0">
+            <div className="bg-zinc-800 p-3 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold flex-shrink-0">JD</div>
+                {isSidebarOpen && (
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-bold text-white truncate">John Doe</p>
+                    <p className="text-xs text-zinc-400 truncate">CFO Access</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </motion.aside>
 
-      <motion.div 
-        className="flex-1 flex flex-col h-screen overflow-hidden relative"
-        style={{ transformOrigin: "left center" }}
-        variants={mainContentVariants}
-        initial={false}
-        animate={isSidebarOpen ? "open" : "closed"}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
-        <header className="h-16 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-20">
-           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-zinc-500">
-             <Menu size={20} />
-           </button>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <header className="h-16 bg-white/90 backdrop-blur-md border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-10 flex-shrink-0">
+           <h1 className="text-lg font-bold text-zinc-800 capitalize">{view} Overview</h1>
            <div className="flex items-center gap-4">
              <div className="hidden md:flex relative">
                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
@@ -222,7 +230,12 @@ const App = () => {
         <main className="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
           <AnimatePresence mode="wait">
             {loading ? (
-               <motion.div key="loader">{/* ... loader ... */}</motion.div>
+               <motion.div key="loader">
+                 <div className="space-y-6 animate-pulse">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6"><div className="h-32 bg-zinc-200 rounded-2xl"></div><div className="h-32 bg-zinc-200 rounded-2xl"></div><div className="h-32 bg-zinc-200 rounded-2xl"></div><div className="h-32 bg-zinc-200 rounded-2xl"></div></div>
+                    <div className="h-96 bg-zinc-200 rounded-2xl"></div>
+                 </div>
+               </motion.div>
             ) : (
               <motion.div key={view} variants={pageMotionVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
                 {renderView()}
@@ -230,7 +243,7 @@ const App = () => {
             )}
           </AnimatePresence>
         </main>
-      </motion.div>
+      </div>
     </div>
   );
 };
