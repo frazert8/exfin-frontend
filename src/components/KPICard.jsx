@@ -2,6 +2,7 @@ import React from 'react';
 import Card from './Card';
 import { ArrowUpRight, TrendingUp, DollarSign, Activity, Wallet, Users } from 'lucide-react';
 
+// eslint-disable-next-line no-unused-vars
 const KPICard = ({ title, value, trend, trendValue, icon: Icon, color, className }) => {
   const colors = {
     indigo: "bg-indigo-100 text-indigo-600",

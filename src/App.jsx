@@ -141,7 +141,7 @@ const App = () => {
                 <div className="h-96 bg-zinc-200 rounded-2xl"></div>
              </div>
           ) : view === 'dashboard' ? (
-            <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="space-y-6">
               
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -156,10 +156,10 @@ const App = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <KPICard title="Total Revenue" value={formatCurrency(totalRev)} trend="up" trendValue="12.4%" icon={DollarSign} color="indigo" className="animate-in fade-in slide-in-from-bottom-4 duration-500" />
-                <KPICard title="Net Margin" value={`${margin}%`} trend="up" trendValue="2.1%" icon={Activity} color="emerald" className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100" />
-                <KPICard title="Cash on Hand" value={formatCurrency(latest.cashOnHand)} trend="down" trendValue="0.4%" icon={Wallet} color="blue" className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200" />
-                <KPICard title="Total Headcount" value={latest.headcount} trend="up" trendValue="+3" icon={Users} color="violet" className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300" />
+                <KPICard title="Total Revenue" value={formatCurrency(totalRev)} trend="up" trendValue="12.4%" icon={DollarSign} color="indigo" />
+                <KPICard title="Net Margin" value={`${margin}%`} trend="up" trendValue="2.1%" icon={Activity} color="emerald" />
+                <KPICard title="Cash on Hand" value={formatCurrency(latest.cashOnHand)} trend="down" trendValue="0.4%" icon={Wallet} color="blue" />
+                <KPICard title="Total Headcount" value={latest.headcount} trend="up" trendValue="+3" icon={Users} color="violet" />
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
