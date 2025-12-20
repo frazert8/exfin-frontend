@@ -27,7 +27,7 @@ const AnimatedNumber = ({ value, format }) => {
   const formatDisplayValue = () => {
     const formatted = format(displayValue);
     // This regex ensures we only split on the first number sequence
-    const match = formatted.match(/(\D*)(\d.*)/);
+    const match = String(formatted).match(/(\D*)(\d.*)/);
     if (!match) return formatted;
     
     const [, prefix, numberPart] = match;

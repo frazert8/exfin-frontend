@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFinancialData, seedDatabase, formatCurrency } from './api';
-import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { AnimatePresence, motion } from 'framer-motion';
 
 import Card from './components/Card';
 import KPICard from './components/KPICard';
@@ -95,7 +95,7 @@ const App = () => {
                   </div>
                   <button className="text-zinc-400 hover:text-zinc-600"><ExternalLink size={16} /></button>
                 </div>
-                <div className="h-[90%] w-full">
+                <div className="h-[90%] w-full min-h-[400px]">
                    <ResponsiveContainer width="100%" height="100%"><ComposedChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" /><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} dy={10} /><YAxis axisLine={false} tickLine={false} tick={{fill: '#a1a1aa', fontSize: 12}} tickFormatter={(value) => `$${value/1000}k`} /><RechartsTooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} /><Legend iconType="circle" wrapperStyle={{paddingTop: '20px'}} /><Bar dataKey="revenue" name="Revenue" barSize={30} fill="#6366f1" radius={[4, 4, 0, 0]} /><Line type="monotone" dataKey="netIncome" name="Net Income" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill:'#10b981', strokeWidth:2, stroke:'#fff'}} activeDot={{r: 6}} /></ComposedChart></ResponsiveContainer>
                 </div>
               </Card>
@@ -109,7 +109,7 @@ const App = () => {
               
               <Card className="lg:col-span-3">
                  <h3 className="font-bold text-zinc-900 text-lg mb-2">Cost Distribution</h3>
-                 <div className="h-40 relative flex justify-around items-center">
+                 <div className="h-40 relative flex justify-around items-center min-h-[160px]">
                     <div className="h-40 w-40"><ResponsiveContainer width="100%" height="100%"><RePieChart><Pie data={expenseData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">{expenseData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} stroke="none" />))}</Pie></RePieChart></ResponsiveContainer></div>
                     <div className="space-y-3">{expenseData.map((item) => (<div key={item.name} className="flex justify-between items-center text-sm w-40"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: item.color}}></div><span className="text-zinc-600">{item.name}</span></div><span className="font-bold text-zinc-900">{formatCurrency(item.value)}</span></div>))}</div>
                  </div>
