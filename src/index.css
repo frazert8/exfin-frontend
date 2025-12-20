@@ -4,6 +4,6 @@
 
 @layer base {
   body {
-    background-image: linear-gradient(170deg, #f5f8ff 0%, #f0f2f9 100%);
+    @apply bg-gray-100;
   }
 }

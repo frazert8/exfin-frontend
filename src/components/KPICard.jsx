@@ -1,40 +1,38 @@
 import React from 'react';
-import Card from './Card';
-import AnimatedNumber from './AnimatedNumber';
-import { ArrowUpRight, TrendingUp } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 // eslint-disable-next-line no-unused-vars
-const KPICard = ({ title, rawValue, format, trend, trendValue, icon: Icon, color, className }) => {
+const KPICard = ({ title, value, trend, icon: Icon, color, trendColor = 'green' }) => {
   const colors = {
     indigo: "bg-indigo-100 text-indigo-600",
     emerald: "bg-emerald-100 text-emerald-600", 
     blue: "bg-blue-100 text-blue-600",
-    violet: "bg-violet-100 text-violet-600"
+    amber: "bg-amber-100 text-amber-600"
+  };
+
+  const trendColors = {
+    green: "bg-green-100 text-green-700",
+    red: "bg-red-100 text-red-700",
   };
 
   return (
-    <Card className={`relative overflow-hidden group ${className}`}>
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <Icon size={80} className="text-zinc-900" />
-      </div>
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className={`p-3 rounded-xl ${colors[color] || colors.indigo}`}>
-            <Icon size={20} strokeWidth={2.5} />
-          </div>
-          <div className={`flex items-center text-xs font-bold px-2 py-1 rounded-lg ${trend === 'up' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-            {trend === 'up' ? <ArrowUpRight size={14} className="mr-1" /> : <TrendingUp size={14} className="mr-1 rotate-180" />}
-            {trendValue}
-          </div>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex justify-between items-start mb-4">
+        <div className={`p-3 rounded-lg ${colors[color] || colors.indigo}`}>
+          <Icon className="text-xl" />
         </div>
-        <div>
-          <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
-          <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
-            <AnimatedNumber value={rawValue} format={format} />
-          </h3>
-        </div>
+        {trend && (
+          <div className={`flex items-center text-xs font-bold px-2 py-1 rounded-full ${trendColors[trendColor]}`}>
+            <ArrowUp className="w-3 h-3" />
+            <span>{trend}</span>
+          </div>
+        )}
       </div>
-    </Card>
+      <div>
+        <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">{title}</p>
+        <p className="text-3xl font-extrabold text-gray-800 mt-1">{value}</p>
+      </div>
+    </div>
   );
 };
 
