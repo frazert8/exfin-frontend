@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    background-color: theme('colors.gray.100');
+    background-color: #F3F4F6;
     font-family: theme('fontFamily.sans');
   }
 }
