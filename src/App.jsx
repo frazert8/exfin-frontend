@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 
 // --- SUPABASE CONFIGURATION ---
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseUrl = 'https://cuaskddjuqvxwqjjgcuw.supabase.co'; // Temporary test
 const supabaseKey = process.env.VITE_SUPABASE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
