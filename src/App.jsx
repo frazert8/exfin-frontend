@@ -1,144 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getFinancialData, seedDatabase, formatCurrency } from './api';
+
+import Card from './components/Card';
+import KPICard from './components/KPICard';
+import CustomTooltip from './components/CustomTooltip';
+
 import { 
-  LayoutDashboard, TrendingUp, Users, DollarSign, Activity, Briefcase, Lock, 
-  BrainCircuit, CheckCircle, Menu, X, BarChart2, Check, ExternalLink, Database, 
-  ArrowUpRight, Wallet, MoreHorizontal, Search, Bell, ChevronDown, RefreshCw
+  LayoutDashboard, BarChart2, Lock, BrainCircuit, Menu, Search, Bell, RefreshCw, 
+  ChevronDown, DollarSign, Activity, Wallet, Users, ExternalLink, MoreHorizontal,
+  CheckCircle, Database, Check
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell 
 } from 'recharts';
 
-// --- SUPABASE CONFIGURATION ---
-const supabaseUrl = 'https://cuaskddjuqvxwqjjgcuw.supabase.co';
-const supabaseKey ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1YXNrZGRqdXF2eHdxampnY3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzIxMDgsImV4cCI6MjA4MTEwODEwOH0.LahgwcW78nXk-GFu3d9ZM1XanwYCX77Cb3LRPO0_V0s';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// --- UTILS & MOCK DATA ---
-const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-
-const generateMockData = () => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  let cash = 45000;
-  return months.map((month, i) => {
-    const rev = Math.floor(45000 + (i * 3500) + (Math.random() * 5000));
-    const exp = Math.floor(rev * 0.65);
-    cash += (rev - exp);
-    return {
-      month, 
-      revenue: rev, 
-      cogs: Math.floor(rev * 0.4), 
-      opex: Math.floor(rev * 0.25), 
-      netIncome: rev - exp, 
-      cashOnHand: cash, 
-      headcount: 5 + Math.floor(i/4)
-    };
-  });
-};
-
-// --- COMPONENTS ---
-
-const Card = ({ children, className="", noPadding = false }) => (
-  <div className={`bg-white rounded-2xl border border-zinc-200 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden ${className}`}>
-    <div className={noPadding ? "" : "p-6"}>{children}</div>
-  </div>
-);
-
-const KPICard = ({ title, value, trend, trendValue, icon: Icon, color, className }) => {
-  const colors = {
-    indigo: "bg-indigo-100 text-indigo-600",
-    emerald: "bg-emerald-100 text-emerald-600", 
-    blue: "bg-blue-100 text-blue-600",
-    violet: "bg-violet-100 text-violet-600"
-  };
-
-  return (
-    <Card className={`relative overflow-hidden group ${className}`}>
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <Icon size={80} className="text-zinc-900" />
-      </div>
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className={`p-3 rounded-xl ${colors[color] || colors.indigo}`}>
-            <Icon size={20} strokeWidth={2.5} />
-          </div>
-          <div className={`flex items-center text-xs font-bold px-2 py-1 rounded-lg ${trend === 'up' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-            {trend === 'up' ? <ArrowUpRight size={14} className="mr-1" /> : <TrendingUp size={14} className="mr-1 rotate-180" />}
-            {trendValue}
-          </div>
-        </div>
-        <div>
-          <p className="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
-          <h3 className="text-2xl font-black text-zinc-900 tracking-tight">{value}</h3>
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-zinc-900 text-white p-4 rounded-xl shadow-xl text-sm border border-zinc-700">
-        <p className="font-bold mb-2 text-zinc-300">{label}</p>
-        {payload.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></div>
-            <span className="capitalize text-zinc-400">{entry.name}:</span>
-            <span className="font-mono font-bold">{formatCurrency(entry.value)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-// --- MAIN APP ---
-
+// --- Main App Component ---
 const App = () => {
   const [view, setView] = useState('dashboard'); 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState('loading'); 
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const handleFetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: sbData, error } = await supabase.from('financials').select('*').order('id', { ascending: true });
-      if (!error && sbData.length > 0) { 
-        setData(sbData.map((d, i) => ({...d, index: i}))); 
-        setSource('supabase'); 
-      } else { 
-        throw new Error("Empty"); 
-      }
-    } catch (err) { 
-      setTimeout(() => {
-        setData(generateMockData()); 
-        setSource('local'); 
-        setLoading(false);
-      }, 800);
+      const { data: fetchedData, source: fetchedSource } = await getFinancialData();
+      setData(fetchedData);
+      setSource(fetchedSource);
+    } catch (error) {
+      // The api service already logs the error, so we just need to handle state
+      console.error("Failed to fetch financial data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    handleFetchData();
+  }, [handleFetchData]);
+
+  const handleSeedDatabase = async () => {
+    if (source === 'supabase') {
+      alert("Database already has data!");
       return;
     }
-    setLoading(false);
-  };
-
-  const seedDatabase = async () => {
-    if (source === 'supabase') return alert("Database already has data!");
     setLoading(true);
-    const mock = generateMockData();
-    const { error } = await supabase.from('financials').insert(mock);
-    if (error) alert("Error: " + error.message);
-    else window.location.reload();
+    const success = await seedDatabase();
+    if (success) {
+      window.location.reload();
+    } else {
+      setLoading(false);
+    }
   };
-
+  
   const totalRev = data.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
   const latest = data[data.length - 1] || {};
   const margin = latest.revenue ? ((latest.netIncome / latest.revenue) * 100).toFixed(1) : 0;
@@ -200,7 +117,7 @@ const App = () => {
         {/* Header */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="lg:hidden text-zinc-500"><Menu size={20} /></button>
+            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="text-zinc-500"><Menu size={20} /></button>
             <h1 className="text-lg font-bold text-zinc-800 capitalize">{view} Overview</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -224,22 +141,20 @@ const App = () => {
                 <div className="h-96 bg-zinc-200 rounded-2xl"></div>
              </div>
           ) : view === 'dashboard' ? (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in duration-500">
               
-              {/* Filter Row */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Financial Performance</h2>
                   <p className="text-zinc-500 text-sm">Real-time overview of key metrics.</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={fetchData} className="p-2 bg-white border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-50 transition-colors"><RefreshCw size={18} /></button>
+                  <button onClick={handleFetchData} className="p-2 bg-white border border-zinc-200 rounded-lg text-zinc-600 hover:bg-zinc-50 transition-colors"><RefreshCw size={18} /></button>
                   <button className="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2">Last 12 Months <ChevronDown size={14} /></button>
                   <button className="px-4 py-2 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-800 shadow-lg shadow-zinc-200">Export Report</button>
                 </div>
               </div>
 
-              {/* KPI Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <KPICard title="Total Revenue" value={formatCurrency(totalRev)} trend="up" trendValue="12.4%" icon={DollarSign} color="indigo" className="animate-in fade-in slide-in-from-bottom-4 duration-500" />
                 <KPICard title="Net Margin" value={`${margin}%`} trend="up" trendValue="2.1%" icon={Activity} color="emerald" className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100" />
@@ -247,7 +162,6 @@ const App = () => {
                 <KPICard title="Total Headcount" value={latest.headcount} trend="up" trendValue="+3" icon={Users} color="violet" className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300" />
               </div>
 
-              {/* Charts Area */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <Card className="xl:col-span-2 min-h-[400px]">
                   <div className="flex justify-between items-center mb-6">
@@ -289,7 +203,6 @@ const App = () => {
                               <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                             ))}
                           </Pie>
-                          <RechartsTooltip />
                         </RePieChart>
                       </ResponsiveContainer>
                       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -311,7 +224,6 @@ const App = () => {
                 </Card>
               </div>
 
-              {/* Data Table */}
               <Card noPadding className="overflow-hidden">
                 <div className="p-6 border-b border-zinc-100 flex justify-between items-center">
                   <h3 className="font-bold text-zinc-900 text-lg">Detailed Monthly Ledger</h3>
@@ -357,7 +269,7 @@ const App = () => {
                     <p className="text-zinc-500 mb-8">Manage your Supabase connection and seed initial demo data.</p>
                     
                     <button 
-                        onClick={seedDatabase} 
+                        onClick={handleSeedDatabase} 
                         disabled={source === 'supabase' || loading} 
                         className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${source === 'supabase' ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'}`}
                     >
