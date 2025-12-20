@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFinancialData, seedDatabase, formatCurrency } from './api';
-import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+/* eslint-disable no-unused-vars */
+import { AnimatePresence, motion } from 'framer-motion';
+/* eslint-enable no-unused-vars */ // eslint-disable-line no-unused-vars
 
 import Card from './components/Card';
 import KPICard from './components/KPICard';
 import CustomTooltip from './components/CustomTooltip';
 
-import { 
-  LayoutDashboard, BarChart2, Lock, RocketLaunch, Menu, Search, Bell,
-  ChevronsLeft, DollarSign, Activity, Wallet, Users, Database, Check
-} from 'lucide-react';
-import { 
-  ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
-  Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell
+import {
+  ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+  Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, BarChart
 } from 'recharts';
-
 // eslint-disable-next-line no-unused-vars
 const icons = {
   rocket: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.3.05-3.11.63-.42 1.22-.9 1.77-1.44 .9-.9 1.7-2.1 2.28-3.65.53-1.44.56-3.03.04-4.52-1.31-3.9-5.26-5.36-9.5-2.82-4.25 2.54-5.69 7.1-2.82 9.5Z"/><path d="m15 12-3 3 3 3 3-3-3-3Z"/><path d="m22 2-3 1 3 3 1-3Z"/><path d="M19 8c-2 3-5 3-5 3s0-3 3-5"/><path d="M14 13s.5 2.5 2.5 4.5"/></svg>,
