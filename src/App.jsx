@@ -74,7 +74,7 @@ const App = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <header className="h-20 bg-white/80 backdrop-blur-sm border-b border-gray-200 px-10 flex items-center justify-between flex-shrink-0">
           <div>
-            <h2 className="text-2xl font-bold text-datarails-midnight capitalize">{view}</h2>
+            <h2 className="text-2xl font-bold text-datarails-midnight capitalize">{view} - v2.0</h2>
             <p className="text-gray-500 text-sm">Here is your overview.</p>
           </div>
           <div className="flex items-center gap-4">
